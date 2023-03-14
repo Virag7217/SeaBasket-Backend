@@ -19,12 +19,11 @@ const User = sequelize.define("user", {
   name: {
     type: Sequelize.STRING,
     allowNull: false,
-    
   },
   phoneNo: {
     type: Sequelize.STRING,
     allowNull: true,
-  }
+  },
 });
 
 module.exports = User;

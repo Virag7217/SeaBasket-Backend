@@ -7,15 +7,16 @@ exports.sendMail = async (req, res, next) => {
     host: "smtp.ethereal.email",
     port: 587,
     auth: {
-      user: "shane77@ethereal.email",
-      pass: "adRZBavbgM4UsMhkaJ",
+      user: "naomi.runte13@ethereal.email",
+      pass: "9t4XFsE4cAECZawrQV",
     },
   });
   let info = await transporter.sendMail({
     from: '"Virag Ranipa" <virag@gmail.com>',
     to: email,
-    subject: "Welcome to seabasket",
-    text: "You successfully singup!",
+    subject: "You successfully singup to SeaBasket!",
+    text: `Welcome to seabasket !!
+            Offers !!!!!!`,
   });
   console.log("Message sent: %s", info.messageId);
 };

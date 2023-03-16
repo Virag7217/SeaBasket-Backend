@@ -23,6 +23,9 @@ const User = sequelize.define("user", {
   phoneNo: {
     type: Sequelize.STRING,
     allowNull: true,
+    validate: {
+      is: /^(\+?\d{1,3}[- ]?)?\d{10}$/
+    }
   },
 });
 

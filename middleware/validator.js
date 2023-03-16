@@ -19,4 +19,4 @@ exports.signupValidator = [
 
 exports.emailValidator = [body("email").isEmail().normalizeEmail()];
 
-exports.passwordValidator = [body("password").trim().isLength({ min: 5 })];
+exports.passwordValidator = [body("newPassword").trim().isLength({ min: 5 })];

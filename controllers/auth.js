@@ -39,6 +39,17 @@ exports.signup = async (req, res, next) => {
 };
 
 exports.login = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed.");
+    error.statusCode = 422;
+    error.data = errors.array();
+    res.status(422).json({
+      error: error.message,
+      message: errors.array()[0],
+    });
+    throw error;
+  }
   let authenticatedUser;
   const { emailOrPhoneNo, password } = req.body;
   try {
@@ -83,6 +94,17 @@ exports.login = async (req, res, next) => {
 };
 
 exports.resetPasswordLink = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed.");
+    error.statusCode = 422;
+    error.data = errors.array();
+    res.status(422).json({
+      error: error.message,
+      message: errors.array()[0],
+    });
+    throw error;
+  }
   const { email } = req.body;
   let loadedUser, id;
   try {
@@ -142,6 +164,17 @@ exports.ResetPasswordPage = async (req, res, next) => {
 };
 
 exports.updatePassword = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed.");
+    error.statusCode = 422;
+    error.data = errors.array();
+    res.status(422).json({
+      error: error.message,
+      message: errors.array()[0],
+    });
+    throw error;
+  }
   let { token } = req.params;
   const { newPassword } = req.body;
   try {
@@ -155,7 +188,7 @@ exports.updatePassword = async (req, res, next) => {
       error.statusCode = 401;
       throw error;
     }
-    const newHashedPassword =  await bcrypt.hash(newPassword, 12);
+    const newHashedPassword = await bcrypt.hash(newPassword, 12);
     token = undefined;
     user.password = newHashedPassword;
     await user.save();

@@ -1,8 +1,6 @@
-// Packages || NPM modules
 const bodyParser = require("body-parser");
 const express = require("express");
 
-// Require File Paths.
 const authRoutes = require("./routes/auth");
 const sequelize = require("./utility/database");
 

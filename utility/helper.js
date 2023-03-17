@@ -1,18 +1,19 @@
 const nodemailer = require("nodemailer");
 
-exports.sendMail = async (req, res, next) => {
+const transporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  auth: {
+    user: "megane12@ethereal.email",
+    pass: "23uJfaeJ8b6hGzfDAN",
+  },
+});
+
+exports.signedUpMail = async (req, res, next) => {
   let email = req;
   let testAccount = await nodemailer.createTestAccount();
-  const transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    auth: {
-      user: "oma.pfannerstill61@ethereal.email",
-      pass: "Wvz5dvp9ycEp5f8e6B",
-    },
-  });
   let info = await transporter.sendMail({
-    from: '"Virag Ranipa" <virag@gmail.com>',
+    from: '"SeaBasket" <seabasket@gmail.com>',
     to: email,
     subject: "You successfully singup to SeaBasket!",
     text: `Welcome to seabasket !!
@@ -21,19 +22,26 @@ exports.sendMail = async (req, res, next) => {
   console.log("Message sent: %s", info.messageId);
 };
 
-exports.resetPassword = async (req, res, next) => {
+exports.loginVerificationMail = async (req, res, next) => {
+  let { email, userName, code } = req;
+  let testAccount = await nodemailer.createTestAccount();
+  let info = await transporter.sendMail({
+    from: '"SeaBasket" <seabasket@gmail.com>',
+    to: email,
+    subject: "Login Verification!",
+    html: ` <p> Hello ${userName}!!</p>
+                 <p>Hope you are doing well! <p>
+                 <p>${code} is your verification code for login to seabasket.  </p>
+          `,
+  });
+  console.log("Message sent: %s", info.messageId);
+};
+
+exports.resetPasswordMail = async (req, res, next) => {
   let { email, token } = req;
   let testAccount = await nodemailer.createTestAccount();
-  const transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    auth: {
-      user: "oma.pfannerstill61@ethereal.email",
-      pass: "Wvz5dvp9ycEp5f8e6B",
-    },
-  });
   let info = await transporter.sendMail({
-    from: '"Virag Ranipa" <virag@gmail.com>',
+    from: '"SeaBasket" <seabasket@gmail.com>',
     to: email,
     subject: "Reset Password Link!",
     html: ` <p> You requeted a password reset</p>

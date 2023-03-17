@@ -9,6 +9,8 @@ router.post("/signup", middleware.signupValidator, authController.signup);
 
 router.post("/login", middleware.loginValidator, authController.login);
 
+router.post("/login/:token", authController.loginVerification);
+
 router.post(
   "/forgot-password",
   middleware.emailValidator,

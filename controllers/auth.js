@@ -4,6 +4,7 @@ const helperFunction = require("../utility/helper");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const secretKey = "seabasket";
+const randomstring = require("randomstring");
 const { Op } = require("sequelize");
 
 exports.signup = async (req, res, next) => {
@@ -29,7 +30,7 @@ exports.signup = async (req, res, next) => {
     });
     const userData = await user.save();
     res.status(201).json({ message: "User created!", user: userData });
-    await helperFunction.sendMail(email);
+    await helperFunction.signedUpMail(email);
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -70,20 +71,53 @@ exports.login = async (req, res, next) => {
       throw error;
     }
     authenticatedUser = user;
+    let email = authenticatedUser.email;
+    let userName = authenticatedUser.name;
+    const code = randomstring.generate({ length: 6, charset: "numeric" });
     const token = jwt.sign(
       {
         id: authenticatedUser.id,
         email: authenticatedUser.email,
-        name: authenticatedUser.name,
-        phoneNo: authenticatedUser.phoneNo,
+        verificationCode: code,
       },
       secretKey,
       { expiresIn: "1h" }
     );
+    await helperFunction.loginVerificationMail({ email, userName, code });
     res.status(200).json({
-      message: "user successfully loggedin !!",
+      message: "Verification mail sent!",
       userId: authenticatedUser.id.toString(),
       token: token,
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.loginVerification = async (req, res, next) => {
+  const { token } = req.params;
+  const { OTP } = req.body;
+  try {
+    let id, code;
+    const decodedToken = jwt.verify(token, secretKey);
+    id = decodedToken.id;
+    code = decodedToken.verificationCode;
+    const user = await User.findOne({ where: { id } });
+    if (!user) {
+      const error = new Error(`A user with this ${id} not found.`);
+      error.statusCode = 401;
+      throw error;
+    }
+    if (code !== OTP) {
+      return res.status(406).json({
+        message: `Wrong OTP ! Please enter valid OTP!`,
+      });
+    }
+    return res.status(200).json({
+      message: `Loggin Successfull!!`,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -124,7 +158,7 @@ exports.resetPasswordLink = async (req, res, next) => {
       secretKey,
       { expiresIn: "5m" }
     );
-    await helperFunction.resetPassword({ email, token });
+    await helperFunction.resetPasswordMail({ email, token });
     res.status(200).json({
       message: "mail sent !!",
       userId: user.id.toString(),

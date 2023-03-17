@@ -124,7 +124,7 @@ exports.resetPasswordLink = async (req, res, next) => {
       secretKey,
       { expiresIn: "5m" }
     );
-    await helperFunction.resetPassword({ id, email, token });
+    await helperFunction.resetPassword({ email, token });
     res.status(200).json({
       message: "mail sent !!",
       userId: user.id.toString(),

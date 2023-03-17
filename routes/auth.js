@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/signup", middleware.signupValidator, authController.signup);
 
-router.post("/login", middleware.emailValidator, authController.login);
+router.post("/login", middleware.loginValidator, authController.login);
 
 router.post(
   "/forgot-password",
@@ -17,6 +17,10 @@ router.post(
 
 router.get("/password-reset/:token", authController.ResetPasswordPage);
 
-router.post("/password-reset/:token", middleware.passwordValidator , authController.updatePassword);
+router.post(
+  "/password-reset/:token",
+  middleware.passwordValidator,
+  authController.updatePassword
+);
 
 module.exports = router;

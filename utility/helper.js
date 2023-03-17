@@ -22,7 +22,7 @@ exports.sendMail = async (req, res, next) => {
 };
 
 exports.resetPassword = async (req, res, next) => {
-  let { id, email, token } = req;
+  let { email, token } = req;
   let testAccount = await nodemailer.createTestAccount();
   const transporter = nodemailer.createTransport({
     host: "smtp.ethereal.email",

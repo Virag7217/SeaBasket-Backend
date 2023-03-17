@@ -2,12 +2,14 @@ const bodyParser = require("body-parser");
 const express = require("express");
 
 const authRoutes = require("./routes/auth");
+const storeRoutes = require("./routes/store");
 const sequelize = require("./utility/database");
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use("/auth", authRoutes);
+app.use(storeRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);

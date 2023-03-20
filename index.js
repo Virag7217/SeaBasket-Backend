@@ -1,9 +1,10 @@
 const bodyParser = require("body-parser");
 const express = require("express");
 
-const User = require('./models/user');
-const Product = require('./models/product')
-const Rating = require('./models/rating');
+const User = require("./models/user");
+const Product = require("./models/product");
+const Rating = require("./models/rating");
+const Review = require("./models/review");
 
 const authRoutes = require("./routes/auth");
 const storeRoutes = require("./routes/store");
@@ -24,10 +25,16 @@ app.use((error, req, res, next) => {
   res.status(status).json({ message, data });
 });
 
-User.hasMany(Rating); 
-Product.hasMany(Rating); 
-Rating.belongsTo(User); 
+User.hasMany(Rating);
+Product.hasMany(Rating);
+Rating.belongsTo(User);
 Rating.belongsTo(Product);
+User.hasMany(Review);
+Product.hasMany(Review);
+Review.belongsTo(User);
+Review.belongsTo(Product);
+Review.hasOne(Rating);
+Rating.hasOne(Review);
 
 sequelize
   .sync()

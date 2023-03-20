@@ -1,6 +1,7 @@
 const Product = require("../models/product");
 const Rating = require("../models/rating");
 const User = require("../models/user");
+const Review = require("../models/review");
 
 exports.products = async (req, res, next) => {
   const currentPage = 1;
@@ -28,12 +29,18 @@ exports.product = async (req, res, next) => {
     const product = await Product.findByPk(productId, {
       include: [
         {
-          model: Rating,
-          attributes: ["id", "rating"],
+          model: Review,
+          attributes: ["id", "review"],
           include: [
             {
-              model: User,
-              attributes: ["id", "name"],
+              model: Rating,
+              attributes: ["rating"],
+              include: [
+                {
+                  model: User,
+                  attributes: ["id", "name"],
+                },
+              ],
             },
           ],
         },

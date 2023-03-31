@@ -11,6 +11,94 @@ const Address = require("../models/address");
 const Review = require("../models/review");
 const ProductDetails = require("../models/product-details");
 
+exports.profile = async (req, res, next) => {
+  const userId = req.user.UserId;
+  try {
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ["createdAt", "updatedAt"] },
+    });
+    if (!user) {
+      res.status(404).json({ message: `user with  ${userId} id not found` });
+    }
+    const addresses = await Address.findAll({
+      where: { userId },
+      attributes: { exclude: ["createdAt", "updatedAt", "id", "userId"] },
+    });
+    const orders = await Order.findAll({
+      where: { userId },
+      include: [{ model: Product }, { model: Address }],
+    });
+    const Orders = orders.map((order) => ({
+      id: order.id,
+      userId: order.userId,
+      orderDate: order.updatedAt,
+      shipedTo: order.address.name,
+      products: order.products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        quantity: product.orderItem.quantity,
+      })),
+    }));
+
+    res.status(200).json({
+      message: `${user.name} 's profile fetched !`,
+      profile: user,
+      addresses,
+      orders: Orders,
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.updateProfile = async (req, res, next) => {
+  const userId = req.user.UserId;
+  const { password, name, email, newPassword, phoneNo } = req.body;
+
+  try {
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ["createdAt", "updatedAt"] },
+    });
+    if (!user) {
+      const error = new Error(`A user with this ${userId} not found.`);
+      error.statusCode = 401;
+      throw error;
+    }
+    const isEqual = await bcrypt.compare(password, user.password);
+    if (!isEqual) {
+      const error = new Error("Wrong password!");
+      error.statusCode = 401;
+      throw error;
+    }
+    if (name || email || phoneNo || newPassword) {
+      const updates = {};
+      if (name) updates.name = name;
+      if (email) updates.email = email;
+      if (phoneNo) updates.phoneNo = phoneNo;
+      if (newPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        updates.password = hashedPassword;
+      }
+      Object.assign(user, updates);
+    }
+    await user.save();
+    res.status(200).json({
+      message: `profile updated!`,
+      profile: user,
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
 exports.products = async (req, res, next) => {
   try {
     const totalProducts = await Product.count();

@@ -33,5 +33,9 @@ router.post("/order/:orderId", isAuth, storeController.cancelOrder);
 
 router.post("/buy", isAuth, storeController.buyNow);
 
+router.get("/profile", isAuth, storeController.profile);
+
+router.put("/profile", isAuth, storeController.updateProfile);
+
 
 module.exports = router;

@@ -6,6 +6,8 @@ const Product = require("../models/product");
 const Rating = require("../models/rating");
 const User = require("../models/user");
 const Cart = require("../models/cart");
+const Order = require("../models/order");
+const Address = require("../models/address");
 const Review = require("../models/review");
 const ProductDetails = require("../models/product-details");
 
@@ -301,6 +303,161 @@ exports.addToCart = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.postOrder = async (req, res, next) => {
+  const userId = req.user.UserId;
+  try {
+    const user = await User.findOne({
+      where: { id: userId },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+    });
+    const cart = await user.getCart();
+    const products = await cart.getProducts();
+    const order = await user.createOrder();
+
+    const orderData = order.addProducts(
+      products.map((product) => {
+        product.orderItem = { quantity: product.cartProduct.quantity };
+        return product;
+      })
+    );
+    cart.setProducts(null);
+
+    res.status(200).json({ message: "Your Order has been placed!" }); // do something with the cart
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.cancelOrder = async (req, res, next) => {
+  const { orderId } = req.params;
+  try {
+    const order = await Order.findByPk(orderId);
+
+    if (!order) {
+      res.status(404).json({ message: `Order ${orderId} not found` });
+    }
+    order.status = "canceled";
+    await order.save();
+    res.status(200).json({
+      message: `your order ${orderId} has been canceled!`,
+      orders: order,
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.orders = async (req, res, next) => {
+  const userId = req.user.UserId;
+  try {
+    const orderCount = await Order.count({ where: { userId } });
+    const orders = await Order.findAll({
+      where: { userId },
+      include: [{ model: Product }, { model: Address }],
+    });
+    if (orders.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "You haven't placed any orders yet !!" });
+    }
+
+    const Orders = orders.map((order) => ({
+      id: order.id,
+      userId: order.userId,
+      orderDate: order.updatedAt,
+      shipedTo: order.address.name,
+      products: order.products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        quantity: product.orderItem.quantity,
+      })),
+    }));
+
+    res.json({ totalOrders: orderCount, orders: Orders });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.orderDetails = async (req, res, next) => {
+  const { orderId } = req.params;
+  try {
+    const order = await Order.findByPk(orderId, {
+      attributes: { exclude: ["createdAt", "updatedAt", "addressId"] },
+      include: [
+        {
+          model: Product,
+          attributes: ["id", "name", "price", "imageUrl"],
+          through: { attributes: ["quantity"] },
+        },
+        { model: Address },
+      ],
+    });
+    const products = order.products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      quantity: product.orderItem.quantity,
+    }));
+    const orderTotal = products.reduce(
+      (total, product) => total + product.price * product.quantity,
+      0
+    );
+    if (!order) {
+      res.status(404).json({ message: `Order ${orderId} not found` });
+    } else {
+      res.status(200).json({ order, orderTotal });
+    }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.buyNow = async (req, res, next) => {
+  const userId = req.user.UserId;
+  const { productId } = req.body;
+  try {
+    const product = await Product.findByPk(productId, {
+      attributes: {
+        exclude: [
+          "createdAt",
+          "updatedAt",
+          "saleCount",
+          "avgRating",
+          "productDetailId",
+        ],
+      },
+    });
+    const addresses = await Address.findAll({
+      where: { userId },
+      attributes: { exclude: ["createdAt", "updatedAt", "id", "userId"] },
+    });
+    const orderTotal = product.price;
+
+    res.status(200).json({ orderTotal, addresses, product });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
 
 
 

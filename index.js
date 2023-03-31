@@ -8,6 +8,9 @@ const Cart = require("./models/cart");
 const CartProduct = require("./models/cart-product");
 const Rating = require("./models/rating");
 const Review = require("./models/review");
+const Order = require("./models/order");
+const OrderItem = require("./models/order-item");
+const Address = require("./models/address");
 
 const ProductDetails = require("./models/product-details");
 
@@ -44,6 +47,13 @@ User.hasOne(Cart);
 Cart.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartProduct });
 Product.belongsToMany(Cart, { through: CartProduct });
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Product, { through: OrderItem });
+Product.belongsToMany(Order, { through: OrderItem });
+User.hasMany(Address);
+Address.belongsTo(User, { through: Order });
+Order.belongsTo(Address);
 
 
 sequelize

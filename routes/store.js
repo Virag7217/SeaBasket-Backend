@@ -23,5 +23,15 @@ router.get("/cart", isAuth, storeController.getCart);
 
 router.post("/cart", isAuth, storeController.addToCart);
 
+router.get("/order", isAuth, storeController.orders);
+
+router.post("/order", isAuth, storeController.postOrder);
+
+router.get("/order/:orderId", isAuth, storeController.orderDetails);
+
+router.post("/order/:orderId", isAuth, storeController.cancelOrder);
+
+router.post("/buy", isAuth, storeController.buyNow);
+
 
 module.exports = router;

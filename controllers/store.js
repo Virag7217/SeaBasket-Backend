@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const Product = require("../models/product");
 const Rating = require("../models/rating");
 const User = require("../models/user");
+const Cart = require("../models/cart");
 const Review = require("../models/review");
 const ProductDetails = require("../models/product-details");
 
@@ -227,6 +228,80 @@ exports.filter = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getCart = async (req, res, next) => {
+  const userId = req.user.UserId;
+  try {
+    const cart = await Cart.findOne({
+      where: { userId },
+      attributes: {
+        exclude: ["userId"],
+      },
+      include: [{ model: Product }],
+    });
+    if (!cart || cart.products.length === 0) {
+      return res.status(200).json({ message: "Your Seabasket Cart is Empty!" });
+    }
+    const products = cart.products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      quantity: product.cartProduct.quantity,
+    }));
+    const subtotal = products.reduce(
+      (total, product) => total + product.price * product.quantity,
+      0
+    );
+    res.json({
+      cart: {
+        id: cart.id,
+        userId: cart.userId,
+        products: products,
+        Cart_Total: subtotal,
+      },
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.addToCart = async (req, res, next) => {
+  const { productId, quantity } = req.body;
+  const userId = req.user.UserId;
+
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const [cart] = await Cart.findOrCreate({
+      where: { userId },
+      defaults: { userId },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+    });
+    const product = await Product.findByPk(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    await cart.addProduct(product, {
+      through: { quantity: quantity || 1 },
+    });
+    res.json({ message: "Product added to cart successfully", cart: cart });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
 
 
 

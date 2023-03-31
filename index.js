@@ -4,6 +4,8 @@ const express = require("express");
 
 const User = require("./models/user");
 const Product = require("./models/product");
+const Cart = require("./models/cart");
+const CartProduct = require("./models/cart-product");
 const Rating = require("./models/rating");
 const Review = require("./models/review");
 
@@ -38,6 +40,10 @@ Review.belongsTo(User);
 Review.belongsTo(Product);
 Review.hasOne(Rating);
 Rating.belongsTo(Review); //changes hasOne
+User.hasOne(Cart);
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, { through: CartProduct });
+Product.belongsToMany(Cart, { through: CartProduct });
 
 
 sequelize

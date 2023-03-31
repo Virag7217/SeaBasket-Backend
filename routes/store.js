@@ -19,4 +19,9 @@ router.get("/filter", storeController.filter);
 
 router.get("/search", storeController.search);
 
+router.get("/cart", isAuth, storeController.getCart);
+
+router.post("/cart", isAuth, storeController.addToCart);
+
+
 module.exports = router;

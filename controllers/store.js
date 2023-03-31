@@ -492,6 +492,9 @@ exports.orderDetails = async (req, res, next) => {
         { model: Address },
       ],
     });
+    if (!order) {
+      res.status(404).json({ message: `Order ${orderId} not found` });
+    }
     const products = order.products.map((product) => ({
       id: product.id,
       name: product.name,
@@ -503,11 +506,7 @@ exports.orderDetails = async (req, res, next) => {
       (total, product) => total + product.price * product.quantity,
       0
     );
-    if (!order) {
-      res.status(404).json({ message: `Order ${orderId} not found` });
-    } else {
-      res.status(200).json({ order, orderTotal });
-    }
+    res.status(200).json({ order, orderTotal });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -545,9 +544,3 @@ exports.buyNow = async (req, res, next) => {
     next(err);
   }
 };
-
-
-
-
-
-

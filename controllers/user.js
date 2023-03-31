@@ -1,11 +1,13 @@
 const { validationResult } = require("express-validator/check");
 const bcrypt = require("bcryptjs");
-const helperFunction = require("../utility/helper");
-const User = require("../models/user");
 const jwt = require("jsonwebtoken");
-const secretKey = "seabasket";
 const randomstring = require("randomstring");
 const { Op } = require("sequelize");
+
+const User = require("../models/user");
+const helperFunction = require("../utility/helper");
+
+const secretKey = "seabasket";
 
 exports.signup = async (req, res, next) => {
   const errors = validationResult(req);
@@ -29,8 +31,12 @@ exports.signup = async (req, res, next) => {
       phoneNo,
     });
     const userData = await user.save();
-    res.status(201).json({ message: "User created!", user: userData });
-    await helperFunction.signedUpMail(email);
+    if (userData) {
+      await helperFunction.signedUpMail(email);
+      res.status(201).json({ message: "User created!", user: userData });
+    } else {
+      res.status(500).json({ message: "Internal Server Error!" });
+    }
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -60,34 +66,33 @@ exports.login = async (req, res, next) => {
       },
     });
     if (!user) {
-      const error = new Error(`A user with this ${email} not found.`);
+      const error = new Error(`User with this ${emailOrPhoneNo} not found.`);
       error.statusCode = 401;
       throw error;
     }
     const isEqual = await bcrypt.compare(password, user.password);
     if (!isEqual) {
-      const error = new Error("Wrong password!");
+      const error = new Error("Invalid email or password !");
       error.statusCode = 401;
       throw error;
     }
     authenticatedUser = user;
-    let email = authenticatedUser.email;
-    let userName = authenticatedUser.name;
+    const { email, name: userName } = authenticatedUser;
     const code = randomstring.generate({ length: 6, charset: "numeric" });
+    const hashedCode = await bcrypt.hash(code, 6);
     const token = jwt.sign(
       {
         id: authenticatedUser.id,
-        email: authenticatedUser.email,
-        verificationCode: code,
+        verificationCode: hashedCode,
       },
       secretKey,
-      { expiresIn: "1h" }
+      { expiresIn: "60s" }
     );
     await helperFunction.loginVerificationMail({ email, userName, code });
     res.status(200).json({
       message: "Verification mail sent!",
       userId: authenticatedUser.id.toString(),
-      token: token,
+      verificationtoken: token,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -101,23 +106,33 @@ exports.loginVerification = async (req, res, next) => {
   const { token } = req.params;
   const { OTP } = req.body;
   try {
-    let id, code;
+    let id, decodedCode;
     const decodedToken = jwt.verify(token, secretKey);
     id = decodedToken.id;
-    code = decodedToken.verificationCode;
+    decodedCode = decodedToken.verificationCode;
     const user = await User.findOne({ where: { id } });
     if (!user) {
       const error = new Error(`A user with this ${id} not found.`);
       error.statusCode = 401;
       throw error;
     }
-    if (code !== OTP) {
+    let verified = await bcrypt.compare(OTP, decodedCode);
+    if (!verified) {
       return res.status(406).json({
         message: `Wrong OTP ! Please enter valid OTP!`,
       });
     }
+    const authToken = jwt.sign(
+      {
+        UserId: user.id,
+        email: user.email,
+      },
+      secretKey,
+      { expiresIn: "3h" }
+    );
     return res.status(200).json({
-      message: `Loggin Successfull!!`,
+      message: `User Loggedin Successfully!!`,
+      authToken,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -128,6 +143,7 @@ exports.loginVerification = async (req, res, next) => {
 };
 
 exports.resetPasswordLink = async (req, res, next) => {
+  const { email } = req.body;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error("Validation failed.");
@@ -139,8 +155,6 @@ exports.resetPasswordLink = async (req, res, next) => {
     });
     throw error;
   }
-  const { email } = req.body;
-  let loadedUser, id;
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) {
@@ -148,19 +162,17 @@ exports.resetPasswordLink = async (req, res, next) => {
       error.statusCode = 401;
       throw error;
     }
-    loadedUser = user;
-    id = loadedUser.id;
     const token = jwt.sign(
       {
-        id: user.id,
+        userId: user.id,
         email: user.email,
       },
       secretKey,
-      { expiresIn: "5m" }
+      { expiresIn: "2m" }
     );
     await helperFunction.resetPasswordMail({ email, token });
     res.status(200).json({
-      message: "mail sent !!",
+      message: "Reset Password link sent to mail!!",
       userId: user.id.toString(),
       token: token,
     });
@@ -177,11 +189,11 @@ exports.ResetPasswordPage = async (req, res, next) => {
   try {
     let decodedToken, id, email;
     decodedToken = jwt.verify(token, secretKey);
-    id = decodedToken.id;
+    id = decodedToken.userId;
     email = decodedToken.email;
-    const user = await User.findOne({ where: { id } });
+    const user = await User.findOne({ where: { id, email } });
     if (!user) {
-      const error = new Error(`A user with this ${id} not found.`);
+      const error = new Error(`A user with this ${email} not found.`);
       error.statusCode = 401;
       throw error;
     }
@@ -214,7 +226,7 @@ exports.updatePassword = async (req, res, next) => {
   try {
     let decodedToken, id, email;
     decodedToken = jwt.verify(token, secretKey);
-    id = decodedToken.id;
+    id = decodedToken.userId;
     email = decodedToken.email;
     const user = await User.findOne({ where: { id, email } });
     if (!user) {

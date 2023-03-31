@@ -12,6 +12,16 @@ const Rating = sequelize.define("rating", {
     type: Sequelize.TINYINT,
     allowNull: false,
   },
+  createdAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
+  },
 });
 
 module.exports = Rating;

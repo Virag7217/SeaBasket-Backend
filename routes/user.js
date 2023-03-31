@@ -1,13 +1,13 @@
 const express = require("express");
 
 const middleware = require("../middleware/validator");
-const authController = require("../controllers/auth");
+const authController = require("../controllers/user");
 
 const router = express.Router();
 
 router.post("/signup", middleware.signupValidator, authController.signup);
 
-router.post("/login", middleware.loginValidator, authController.login);
+router.post("/login", authController.login);
 
 router.post("/login/:token", authController.loginVerification);
 

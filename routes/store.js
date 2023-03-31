@@ -5,8 +5,18 @@ const isAuth = require("../middleware/isAuth");
 
 const router = express.Router();
 
-router.get("/products", storeController.products);
+router.get("/product", storeController.products);
 
-router.get('/products/:productId',storeController.product);
+router.get("/product/:productId", storeController.productDetail);
+
+router.get("/trending-products", storeController.trendingProducts);
+
+router.get("/categories", storeController.listOfCategories);
+
+router.get("/sorted-product", storeController.sortingProducts);
+
+router.get("/filter", storeController.filter);
+
+router.get("/search", storeController.search);
 
 module.exports = router;

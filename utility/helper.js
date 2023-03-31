@@ -1,12 +1,12 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
+  host: 'smtp.ethereal.email',
   port: 587,
   auth: {
-    user: "megane12@ethereal.email",
-    pass: "23uJfaeJ8b6hGzfDAN",
-  },
+      user: 'zackary.borer95@ethereal.email',
+      pass: 'yWKasdeB28gTPkmKvx'
+  }
 });
 
 exports.signedUpMail = async (req, res, next) => {
@@ -15,7 +15,7 @@ exports.signedUpMail = async (req, res, next) => {
   let info = await transporter.sendMail({
     from: '"SeaBasket" <seabasket@gmail.com>',
     to: email,
-    subject: "You successfully singup to SeaBasket!",
+    subject: "You successfully signup to SeaBasket!",
     text: `Welcome to seabasket !!
             Offers !!!!!!`,
   });
@@ -31,7 +31,7 @@ exports.loginVerificationMail = async (req, res, next) => {
     subject: "Login Verification!",
     html: ` <p> Hello ${userName}!!</p>
                  <p>Hope you are doing well! <p>
-                 <p>${code} is your verification code for login to seabasket.  </p>
+                 <p>${code} is your verification code or OTP for login to seabasket.  </p>
           `,
   });
   console.log("Message sent: %s", info.messageId);

@@ -1,20 +1,32 @@
 const Sequelize = require("sequelize");
 const sequelize = require("../utility/database");
 
-const Review = sequelize.define("review", {
+const ProductDetails = sequelize.define("productDetails", {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true,
   },
-  review: {
+  ASIN: {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  image: {
+  brand: {
     type: Sequelize.STRING,
+    allowNull: false,
+  },
+  itemWeight: {
+    type: Sequelize.INTEGER,
     allowNull: true,
+  },
+  sellerRank: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  manufacturer: {
+    type: Sequelize.STRING,
+    allowNull: false,
   },
   createdAt: {
     type: Sequelize.DATE,
@@ -28,4 +40,4 @@ const Review = sequelize.define("review", {
   },
 });
 
-module.exports = Review;
+module.exports = ProductDetails;

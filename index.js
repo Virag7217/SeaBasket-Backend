@@ -1,4 +1,5 @@
 const bodyParser = require("body-parser");
+const sequelize = require("./utility/database");
 const express = require("express");
 
 const User = require("./models/user");
@@ -6,14 +7,15 @@ const Product = require("./models/product");
 const Rating = require("./models/rating");
 const Review = require("./models/review");
 
-const authRoutes = require("./routes/auth");
+const ProductDetails = require("./models/product-details");
+
+const userRoutes = require("./routes/user");
 const storeRoutes = require("./routes/store");
-const sequelize = require("./utility/database");
 
 const app = express();
 
 app.use(bodyParser.json());
-app.use("/auth", authRoutes);
+app.use(userRoutes);
 app.use(storeRoutes);
 
 app.use((error, req, res, next) => {
@@ -26,6 +28,7 @@ app.use((error, req, res, next) => {
 });
 
 User.hasMany(Rating);
+Product.belongsTo(ProductDetails);
 Product.hasMany(Rating);
 Rating.belongsTo(User);
 Rating.belongsTo(Product);
@@ -34,7 +37,8 @@ Product.hasMany(Review);
 Review.belongsTo(User);
 Review.belongsTo(Product);
 Review.hasOne(Rating);
-Rating.hasOne(Review);
+Rating.belongsTo(Review); //changes hasOne
+
 
 sequelize
   .sync()

@@ -17,13 +17,32 @@ const Product = sequelize.define("product", {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  details: {
+  description: {
     type: Sequelize.STRING,
     allowNull: false,
   },
   imageUrl: {
     type: Sequelize.STRING,
     allowNull: false,
+  },
+  saleCount: {
+    type: Sequelize.INTEGER,
+    allowNull: true,
+  },
+  avgRating: {
+    type: Sequelize.FLOAT,
+    allowNull: true,
+    defaultValue: 0
+  },
+  createdAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
   },
 });
 

@@ -11,6 +11,7 @@ const User = sequelize.define("user", {
   email: {
     type: Sequelize.STRING,
     allowNull: false,
+    unique: true,
   },
   password: {
     type: Sequelize.STRING,
@@ -24,8 +25,8 @@ const User = sequelize.define("user", {
     type: Sequelize.STRING,
     allowNull: true,
     validate: {
-      is: /^(\+?\d{1,3}[- ]?)?\d{10}$/
-    }
+      is: /^(\+?\d{1,3}[- ]?)?\d{10}$/,
+    },
   },
 });
 
